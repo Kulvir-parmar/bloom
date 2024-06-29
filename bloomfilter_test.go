@@ -6,9 +6,9 @@ import (
 
 func TestNumBits(t *testing.T) {
 	type tc struct {
-		numInsertions int64
+		numInsertions int
 		fpRate        float64
-		numBits       int64
+		numBits       int
 	}
 
 	cases := []tc{{10000, 0.001, 143776}, {1000000, 0.01, 9585059}, {1000000, 0.5, 1442696}}
@@ -24,8 +24,8 @@ func TestNumBits(t *testing.T) {
 
 func TestNumHashFunctions(t *testing.T) {
 	type tc struct {
-		numBits       int64
-		numInsertions int64
+		numBits       int
+		numInsertions int
 		numHashes     int
 	}
 
@@ -37,4 +37,7 @@ func TestNumHashFunctions(t *testing.T) {
 			t.Errorf("Expected %d and got %d number of hash functions", c.numHashes, hashes)
 		}
 	}
+}
+
+func TestGetIdx(t *testing.T) {
 }

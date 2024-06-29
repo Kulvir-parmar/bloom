@@ -2,7 +2,10 @@ package bloomfilter
 
 import (
 	"errors"
+	"fmt"
 	"math"
+
+	mmh "github.com/spaolacci/murmur3"
 )
 
 type bf struct {
@@ -10,7 +13,7 @@ type bf struct {
 	buffer           []uint64
 }
 
-func NewBloomFilter(fpRate float64, expectedInsertions int64) (*bf, error) {
+func NewBloomFilter(fpRate float64, expectedInsertions int) (*bf, error) {
 	if fpRate < 0.0 {
 		return nil, errors.New("False Positive Rate must be greater than 0")
 	}
@@ -33,12 +36,79 @@ func NewBloomFilter(fpRate float64, expectedInsertions int64) (*bf, error) {
 
 // num of bits required for given insertions (n) and fp rate (e) are given by formula
 // numBits = Ceil((n * log(e)) / log(1 / pow(2, log(2))))
-func numBits(fpRate float64, expectedInsertions int64) int64 {
-	return int64(math.Ceil((float64(expectedInsertions) * math.Log(fpRate)) / math.Log(1/math.Pow(2, math.Log(2)))))
+func numBits(fpRate float64, expectedInsertions int) int {
+	return int(math.Ceil((float64(expectedInsertions) * math.Log(fpRate)) / math.Log(1/math.Pow(2, math.Log(2)))))
 }
 
 // num of hash functions recommended for given bits(m) and expectedInsertions(n) are given by formula
 // numHashFunctions = round((m / n) * log(2))
-func numHasFunctions(numBits, expectedInsertions int64) int {
+func numHasFunctions(numBits, expectedInsertions int) int {
 	return int(math.Round((float64(numBits) / float64(expectedInsertions)) * math.Log(2)))
+}
+
+// hashing optimizations
+// https://www.eecs.harvard.edu/~michaelm/postscripts/rsa2008.pdf
+// i(x) = h1(x) + ih2(x) mod m
+func (bf *bf) Put(key interface{}) {
+	bytes := GetBytes(key)
+	if len(bytes) == 0 {
+		fmt.Printf("Failed to convert %v to bytes array /n", key)
+		return
+	}
+
+	hash64, _ := mmh.Sum128(bytes)
+	hash1 := int(hash64)
+	hash2 := int(hash64 >> 32)
+
+	for num := range bf.numHashFunctions {
+		combinedHash := hash1 + (num * hash2)
+		if combinedHash < 0 {
+			combinedHash = ^combinedHash
+		}
+		bf.setBit(combinedHash)
+	}
+}
+
+func (bf *bf) MightContain(key interface{}) bool {
+	bytes := GetBytes(key)
+	if len(bytes) == 0 {
+		fmt.Printf("Failed to convert %v to bytes array /n", key)
+		return false
+	}
+
+	hash64, _ := mmh.Sum128(bytes)
+	hash1 := int(hash64)
+	hash2 := int(hash64 >> 32)
+
+	for num := range bf.numHashFunctions {
+		combinedHash := hash1 + (num * hash2)
+		if combinedHash < 0 {
+			combinedHash = ^combinedHash
+		}
+
+		if !bf.checkSetBit(combinedHash) {
+			return false
+		}
+	}
+	return true
+}
+
+func (bf *bf) checkSetBit(hash int) bool {
+	idx := hash % len(bf.buffer)
+	byteIdx, bitIdx := getIdx(idx)
+
+	if bf.buffer[byteIdx]&(1<<bitIdx) == 0 {
+		return false
+	}
+	return true
+}
+
+func (bf *bf) setBit(hash int) {
+	idx := hash % len(bf.buffer)
+	byteIdx, bitIdx := getIdx(idx)
+	bf.buffer[byteIdx] |= (1 << bitIdx)
+}
+
+func getIdx(idx int) (int, int) {
+	return idx / 64, idx % 64
 }
