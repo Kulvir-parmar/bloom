@@ -94,7 +94,7 @@ func (bf *bf) MightContain(key interface{}) bool {
 }
 
 func (bf *bf) checkSetBit(hash int) bool {
-	idx := hash % len(bf.buffer)
+	idx := hash % (len(bf.buffer) * 64)
 	byteIdx, bitIdx := getIdx(idx)
 
 	if bf.buffer[byteIdx]&(1<<bitIdx) == 0 {
@@ -104,7 +104,7 @@ func (bf *bf) checkSetBit(hash int) bool {
 }
 
 func (bf *bf) setBit(hash int) {
-	idx := hash % len(bf.buffer)
+	idx := hash % (len(bf.buffer) * 64)
 	byteIdx, bitIdx := getIdx(idx)
 	bf.buffer[byteIdx] |= (1 << bitIdx)
 }
