@@ -45,3 +45,8 @@ bloomFilter.MightContain(message)
 ```
 
 ---
+
+- **My implementation was highly inspired from [Guava](https://github.com/google/guava/blob/master/guava/src/com/google/common/hash/BloomFilterStrategies.java) library's implementation of a bloom filter**
+
+- **RocksDB implementation of [Bloom Filters](https://github.com/rockset/rocksdb-cloud/blob/master/util/bloom_impl.h) is also very cool**
+- **More [details](https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter#the-math) about the RocksDB implementation**
