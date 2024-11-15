@@ -13,7 +13,7 @@ More about bloom filters: [wikipedia](https://en.wikipedia.org/wiki/Bloom_filter
 
 ```bash
 cd /path/to/project
-go get github.com/Kulvir-parmar/bloomfilter
+go get github.com/kulvirdotgg/bloomfilter
 ```
 
 ## Usage
