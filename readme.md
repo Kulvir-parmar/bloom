@@ -20,7 +20,7 @@ go get github.com/kulvirdotgg/bloomfilter
 - **Creating a bloom filter instance**
 ```go
 import (
-    bf "github.com/Kulvir-parmar/bloomfilter"
+    bf "github.com/kulvirdotgg/bloomfilter"
 )
 
 // adjust these numbers according to the need of your application
